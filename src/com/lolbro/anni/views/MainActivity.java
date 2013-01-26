@@ -20,7 +20,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 
 	@Override
 	protected Scene onCreateScene() {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub lulz
 		return null;
 	}
 	
