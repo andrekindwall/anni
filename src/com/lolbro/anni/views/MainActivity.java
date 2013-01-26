@@ -1,7 +1,7 @@
 package com.lolbro.anni.views;
 
 import org.andengine.engine.camera.Camera;
-import org.andengine.engine.camera.SmoothCamera;
+import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
@@ -26,13 +26,14 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 import android.hardware.SensorManager;
+import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 
-public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouchListener {
+public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouchListener, IUpdateHandler {
 	
 	private static final int CAMERA_WIDTH = 720;
 	private static final int CAMERA_HEIGHT = 480;
@@ -44,6 +45,8 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	
 	private BitmapTextureAtlas mCharactersTextureAtlas;
 	private TiledTextureRegion mPlayerTextureRegion;
+	
+	private Body mPlayerBody;
 	
 	private Scene mScene;
 	private Camera mCamera;
@@ -81,6 +84,12 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		final VertexBufferObjectManager vertexBufferObjectManager = getVertexBufferObjectManager();
 		
 		mScene = new Scene();
+		
+		//Register for touch events on the scene
+		mScene.setOnSceneTouchListener(this);
+		
+		
+		mScene.registerUpdateHandler(this);
 
 		// =====================================================================
 		// BACKGROUND AND WORLD
@@ -112,18 +121,18 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		// =====================================================================
 		
 		//Create a sprite for our player
-		AnimatedSprite playerBody = new AnimatedSprite(CAMERA_WIDTH/2, CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
-
-		//Create physics for the player. We use BoxBody for now
-		Body body = PhysicsFactory.createBoxBody(mPhysicsWorld, playerBody, BodyType.DynamicBody, FIXTURE_DEF);	
-
-		// Place the player in the scene
-		mScene.attachChild(playerBody);		
+		AnimatedSprite playerSprite = new AnimatedSprite(CAMERA_WIDTH/2, CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
 		
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerBody, body, true, true));
+		//Create the player body and set its collision. We use BoxBody for now
+		mPlayerBody = PhysicsFactory.createBoxBody(mPhysicsWorld, playerSprite, BodyType.DynamicBody, FIXTURE_DEF);	
+		
+		// Place the player in the scene
+		mScene.attachChild(playerSprite);		
+		
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerSprite, mPlayerBody, true, true));
 		
 		// Set camera to follow player
-		mCamera.setChaseEntity(playerBody);
+		mCamera.setChaseEntity(playerSprite);
 		
 		
 		mScene.registerUpdateHandler(mPhysicsWorld);
@@ -133,8 +142,26 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 
 	@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-		// TODO Auto-generated method stub
+		if(this.mPhysicsWorld != null) {
+			int velocity = pSceneTouchEvent.getMotionEvent().getX() < mEngine.getSurfaceWidth() / 2 ? -2 : 2;
+			switch(pSceneTouchEvent.getAction()){
+			case TouchEvent.ACTION_DOWN:
+			case TouchEvent.ACTION_MOVE:
+				mPlayerBody.setLinearVelocity(velocity, 0);
+				break;
+			}
+		}
 		return false;
+	}
+
+	@Override
+	public void onUpdate(float pSecondsElapsed) {
+		
+	}
+
+	@Override
+	public void reset() {
+		
 	}
 	
 }
