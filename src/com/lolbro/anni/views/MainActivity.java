@@ -26,7 +26,6 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 import android.hardware.SensorManager;
-import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -55,6 +54,9 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	private Camera mCamera;
 
 	private PhysicsWorld mPhysicsWorld;
+	
+	private boolean mIsTouchingScene;
+	private int mPlayerVelocity;
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -149,11 +151,14 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	@Override
 	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
 		if(this.mPhysicsWorld != null) {
-			int velocity = pSceneTouchEvent.getMotionEvent().getX() < mEngine.getSurfaceWidth() / 2 ? -2 : 2;
 			switch(pSceneTouchEvent.getAction()){
 			case TouchEvent.ACTION_DOWN:
 			case TouchEvent.ACTION_MOVE:
-				mPlayerBody.setLinearVelocity(velocity, 0);
+				mIsTouchingScene = true;
+				mPlayerVelocity = pSceneTouchEvent.getMotionEvent().getX() < mEngine.getSurfaceWidth() / 2 ? -2 : 2;
+				break;
+			default:
+				mIsTouchingScene = false;
 				break;
 			}
 		}
@@ -162,7 +167,9 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
-		
+		if(mIsTouchingScene){
+			mPlayerBody.setLinearVelocity(mPlayerVelocity, mPlayerBody.getLinearVelocity().y);
+		}
 	}
 
 	@Override
