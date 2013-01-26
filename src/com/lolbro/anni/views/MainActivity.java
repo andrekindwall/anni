@@ -38,7 +38,10 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	private static final int CAMERA_WIDTH = 720;
 	private static final int CAMERA_HEIGHT = 480;
 	
-	private static final FixtureDef FIXTURE_DEF = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
+	/**
+	 *  Physic laws constant, only used by player at the moment
+	 */
+	private static final FixtureDef FIXTURE_DEF = PhysicsFactory.createFixtureDef(1, 0f, 0.5f);
 	
 	private BitmapTextureAtlas mBackgroundTextureAtlas;
 	private ITextureRegion mBackgroundLayerBack;
@@ -102,10 +105,10 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		mScene.setBackground(autoParallaxBackground);
 		
 		//Create physic world and set gravity
-		mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_EARTH), false);
+		mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_NEPTUNE), false);
 		
-		//Set the properties for out walls
-		final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(0, 0.5f, 0.5f);
+		//Set the properties for our walls
+		final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(0, 0f, 0.5f);
 		
 		//Create a shape for the ground
 		final Rectangle ground = new Rectangle(0, CAMERA_HEIGHT - 2, CAMERA_WIDTH, 2, vertexBufferObjectManager);
@@ -129,7 +132,10 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		// Place the player in the scene
 		mScene.attachChild(playerSprite);		
 		
+
+		// Connect the player to follow laws of physics in the world
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerSprite, mPlayerBody, true, true));
+
 		
 		// Set camera to follow player
 		mCamera.setChaseEntity(playerSprite);
