@@ -8,20 +8,19 @@ public class MainActivity extends SimpleBaseGameActivity {
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-		// TODO Auto-generated method stub prutt
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	protected void onCreateResources() {
-		// TODO Auto-generated method stub king is nicoUUUUUTlololol
-		//t
+		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	protected Scene onCreateScene() {
-		// TODO Auto-generated method stub nico is king
+		// TODO Auto-generated method stub
 		return null;
 	}
 	
