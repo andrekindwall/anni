@@ -14,7 +14,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 
 	@Override
 	protected void onCreateResources() {
-		// TODO Auto-generated method stub king is nico
+		// TODO Auto-generated method stub king is nicoUUUUUT
 		
 	}
 
