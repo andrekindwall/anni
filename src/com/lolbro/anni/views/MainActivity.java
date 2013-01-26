@@ -1,6 +1,7 @@
 package com.lolbro.anni.views;
 
 import org.andengine.engine.camera.Camera;
+import org.andengine.engine.camera.SmoothCamera;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
@@ -45,16 +46,17 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	private TiledTextureRegion mPlayerTextureRegion;
 	
 	private Scene mScene;
+	private Camera mCamera;
 
 	private PhysicsWorld mPhysicsWorld;
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
-		
+		mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+
 		//TODO Decide if we should use new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT) instead of
 		//new FillResolutionPolicy(), to ensure same ratio on all devices
-		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new FillResolutionPolicy(), camera);
+		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, new FillResolutionPolicy(), mCamera);
 	}
 
 	@Override
@@ -79,6 +81,10 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		final VertexBufferObjectManager vertexBufferObjectManager = getVertexBufferObjectManager();
 		
 		mScene = new Scene();
+
+		// =====================================================================
+		// BACKGROUND AND WORLD
+		// =====================================================================
 		
 		//Create background
 		//Right now Parallax background is meaningless because we don't have a moving background
@@ -94,20 +100,31 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		
 		//Create a shape for the ground
 		final Rectangle ground = new Rectangle(0, CAMERA_HEIGHT - 2, CAMERA_WIDTH, 2, vertexBufferObjectManager);
+
 		//Create physics/collision for the ground
 		PhysicsFactory.createBoxBody(mPhysicsWorld, ground, BodyType.StaticBody, wallFixtureDef);
+	
 		//Make the ground visible in the scene
-//		mScene.attachChild(ground);
+		mScene.attachChild(ground);
+
+		// =====================================================================
+		// PLAYER
+		// =====================================================================
 		
 		//Create a sprite for our player
 		AnimatedSprite playerBody = new AnimatedSprite(CAMERA_WIDTH/2, CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
+
 		//Create physics for the player. We use BoxBody for now
-		Body body = PhysicsFactory.createBoxBody(mPhysicsWorld, playerBody, BodyType.DynamicBody, FIXTURE_DEF);
-		//Place the player in the scene
-		mScene.attachChild(playerBody);
-		
+		Body body = PhysicsFactory.createBoxBody(mPhysicsWorld, playerBody, BodyType.DynamicBody, FIXTURE_DEF);	
+
+		// Place the player in the scene
+		mScene.attachChild(playerBody);		
 		
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerBody, body, true, true));
+		
+		// Set camera to follow player
+		mCamera.setChaseEntity(playerBody);
+		
 		
 		mScene.registerUpdateHandler(mPhysicsWorld);
 		
