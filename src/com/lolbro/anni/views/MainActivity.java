@@ -20,6 +20,7 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 import android.hardware.SensorManager;
+import android.opengl.GLES20;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -83,8 +84,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mSegmentsTextureAtlas.load();
 		
 		//Create texture atlas for mobs
-		mCharactersTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 64, TextureOptions.BILINEAR);
-		mPlayerTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mCharactersTextureAtlas, this, "player.png", 0, 0, 1, 1); //32x64
+		mCharactersTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 128, 64, TextureOptions.BILINEAR);
+		mPlayerTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mCharactersTextureAtlas, this, "playerTile.png", 0, 0, 4, 1); //32x64
 		mCharactersTextureAtlas.load();
 		
 		//Create shape collision importer
@@ -146,6 +147,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 		//Create a sprite for our player
 		AnimatedSprite playerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
+		playerSprite.animate(65);
+		playerSprite.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		
 		//Create the player body and set its collision
 		mPlayerBody = physicsEditorShapeLibrary.createBody("player", playerSprite, mPhysicsWorld);
@@ -171,6 +174,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		return mScene;
 	}
 	
+	@SuppressWarnings("unused")
 	private void activateBox2dRenderDebugging(VertexBufferObjectManager vertexBufferObjectManager) {
 		mScene.attachChild(new Box2dDebugRenderer(mPhysicsWorld, vertexBufferObjectManager));
 	}
