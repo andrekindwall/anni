@@ -5,7 +5,6 @@ import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
 import org.andengine.entity.primitive.Rectangle;
-import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.AutoParallaxBackground;
 import org.andengine.entity.scene.background.ParallaxBackground.ParallaxEntity;
@@ -15,7 +14,6 @@ import org.andengine.entity.util.FPSLogger;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
-import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
@@ -31,8 +29,10 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.lolbro.anni.customs.ChaseCamera;
+import com.lolbro.anni.customs.SwipeScene;
+import com.lolbro.anni.customs.SwipeScene.SwipeListener;
 
-public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouchListener, IUpdateHandler {
+public class MainActivity extends SimpleBaseGameActivity implements SwipeListener, IUpdateHandler {
 	
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
@@ -50,13 +50,10 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	
 	private Body mPlayerBody;
 	
-	private Scene mScene;
+	private SwipeScene mScene;
 	private ChaseCamera mCamera;
 
 	private PhysicsWorld mPhysicsWorld;
-	
-	private boolean mIsTouchingScene;
-	private int mPlayerVelocity;
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -88,13 +85,11 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		
 		final VertexBufferObjectManager vertexBufferObjectManager = getVertexBufferObjectManager();
 		
-		mScene = new Scene();
+		mScene = new SwipeScene();
 		
-		//Register for touch events on the scene
-		mScene.setOnSceneTouchListener(this);
-		
-		
+		//Register for frame updates
 		mScene.registerUpdateHandler(this);
+		
 
 		// =====================================================================
 		// BACKGROUND AND WORLD
@@ -120,7 +115,9 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	
 		//Make the ground visible in the scene
 		mScene.attachChild(ground);
-
+		
+		
+		
 		// =====================================================================
 		// PLAYER
 		// =====================================================================
@@ -147,34 +144,50 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 		
 		return mScene;
 	}
-
+	
 	@Override
-	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
-		if(this.mPhysicsWorld != null) {
-			switch(pSceneTouchEvent.getAction()){
-			case TouchEvent.ACTION_DOWN:
-			case TouchEvent.ACTION_MOVE:
-				mIsTouchingScene = true;
-				mPlayerVelocity = pSceneTouchEvent.getMotionEvent().getX() < mEngine.getSurfaceWidth() / 2 ? -2 : 2;
-				break;
-			default:
-				mIsTouchingScene = false;
-				break;
-			}
-		}
-		return false;
+	public synchronized void onResumeGame() {
+		super.onResumeGame();
+		mScene.registerForGestureDetection(this, this);
 	}
 
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
-		if(mIsTouchingScene){
-			mPlayerBody.setLinearVelocity(mPlayerVelocity, mPlayerBody.getLinearVelocity().y);
-		}
+		
+	}
+	
+	private void jump() {
+		mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -5);
 	}
 
+	//TODO Merge jump(), jumpLeft() and jumpRight() into jump(int direction)
+	private void jumpLeft() {
+		mPlayerBody.setLinearVelocity(-3.5f, -4f);
+	}
+
+	//TODO Merge jump(), jumpLeft() and jumpRight() into jump(int direction)
+	private void jumpRight() {
+		mPlayerBody.setLinearVelocity(3.5f, -4f);
+	}
+	
 	@Override
 	public void reset() {
 		
+	}
+
+	@Override
+	public void onSwipe(int direction) {
+		switch(direction){
+		case SwipeListener.DIRECTION_UP:
+			jump();
+			break;
+		case SwipeListener.DIRECTION_LEFT:
+			jumpLeft();
+			break;
+		case SwipeListener.DIRECTION_RIGHT:
+			jumpRight();
+			break;
+		}
 	}
 	
 }
