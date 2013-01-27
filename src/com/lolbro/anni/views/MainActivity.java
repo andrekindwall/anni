@@ -34,8 +34,8 @@ import com.lolbro.anni.customs.ChaseCamera;
 
 public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouchListener, IUpdateHandler {
 	
-	private static final int CAMERA_WIDTH = 720;
-	private static final int CAMERA_HEIGHT = 480;
+	public static final int CAMERA_WIDTH = 720;
+	public static final int CAMERA_HEIGHT = 480;
 	
 	/**
 	 *  Physic laws constant, only used by player at the moment
