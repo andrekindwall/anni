@@ -24,15 +24,22 @@ import android.hardware.SensorManager;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.badlogic.gdx.physics.box2d.Manifold;
 import com.lolbro.anni.customs.ChaseCamera;
 import com.lolbro.anni.customs.SwipeScene;
 import com.lolbro.anni.customs.SwipeScene.SwipeListener;
+import com.lolbro.anni.debug.Box2dDebugRenderer;
 import com.lolbro.anni.physicseditor.PhysicsEditorShapeLibrary;
 
-public class MainActivity extends SimpleBaseGameActivity implements SwipeListener, IUpdateHandler {
+public class MainActivity extends SimpleBaseGameActivity implements SwipeListener, IUpdateHandler, ContactListener {
 	
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
+	
+	public static final String FLOOR_USER_DATA = "segment_floor";
 	
 	private BitmapTextureAtlas mBackgroundTextureAtlas;
 	private ITextureRegion mBackgroundLayerBack;
@@ -44,12 +51,14 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private TiledTextureRegion mPlayerTextureRegion;
 	
 	private Body mPlayerBody;
-
+	
 	private PhysicsEditorShapeLibrary physicsEditorShapeLibrary;
 	private PhysicsEditorShapeLibrary levelShapeLibrary;
 	private SwipeScene mScene;
 	private ChaseCamera mCamera;
 	private PhysicsWorld mPhysicsWorld;
+	
+	private int groundContact = 0;
 
     
 	@Override
@@ -87,7 +96,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
         levelShapeLibrary = new PhysicsEditorShapeLibrary();
         levelShapeLibrary.open(this, "shapes/segments.xml");
 	}
-
+	
 	@Override
 	protected Scene onCreateScene() {
 		mEngine.registerUpdateHandler(new FPSLogger());
@@ -95,7 +104,6 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		final VertexBufferObjectManager vertexBufferObjectManager = getVertexBufferObjectManager();
 		
 		mScene = new SwipeScene();
-		
 		//Register for frame updates
 		mScene.registerUpdateHandler(this);
 		
@@ -113,7 +121,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		//Create physic world and set gravity
 		mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_NEPTUNE), false);
 		
+		//Register for contact changes. Needed to check if user stands on ground
+		mPhysicsWorld.setContactListener(this);
 		
+//		activateBox2dRenderDebugging(vertexBufferObjectManager);
 		
 		// =====================================================================
 		// SEGMENTS
@@ -123,7 +134,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		Sprite floorSegment = new Sprite(0, -mSegmentFloor1.getHeight(), mSegmentFloor1, vertexBufferObjectManager);
 		
 		//Create collision for the ground
-		levelShapeLibrary.createBody("segment_floor_1", floorSegment, mPhysicsWorld);
+		Body segmentBody = levelShapeLibrary.createBody("segment_floor_1", floorSegment, mPhysicsWorld);
+		segmentBody.setUserData(FLOOR_USER_DATA);
 		
 		//Make the ground visible
 		mScene.attachChild(floorSegment);
@@ -158,6 +170,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		return mScene;
 	}
 	
+	private void activateBox2dRenderDebugging(VertexBufferObjectManager vertexBufferObjectManager) {
+		mScene.attachChild(new Box2dDebugRenderer(mPhysicsWorld, vertexBufferObjectManager));
+	}
+
 	@Override
 	public synchronized void onResumeGame() {
 		super.onResumeGame();
@@ -190,7 +206,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 
 	@Override
 	public void onSwipe(int direction) {
-		if(Math.abs(mPlayerBody.getLinearVelocity().y) > 0.05f){
+		if(groundContact <= 0){
 			return;
 		}
 		
@@ -205,6 +221,30 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 			jumpRight();
 			break;
 		}
+	}
+
+	@Override
+	public void beginContact(Contact contact) {
+		if(contact.getFixtureB().getBody() == mPlayerBody && contact.getFixtureA().getBody().getUserData().equals(FLOOR_USER_DATA)){
+			groundContact++;
+		}
+	}
+
+	@Override
+	public void endContact(Contact contact) {
+		if(contact.getFixtureB().getBody() == mPlayerBody && contact.getFixtureA().getBody().getUserData().equals(FLOOR_USER_DATA)){
+			groundContact--;
+		}
+	}
+
+	@Override
+	public void preSolve(Contact contact, Manifold oldManifold) {
+		
+	}
+
+	@Override
+	public void postSolve(Contact contact, ContactImpulse impulse) {
+		
 	}
 	
 }

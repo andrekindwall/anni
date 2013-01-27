@@ -3,7 +3,7 @@
 <bodydef version="1.0">
     <bodies numBodies="1">
 
-        <body name="player" dynamic="true" numFixtures="1">
+        <body name="player" dynamic="true" numFixtures="2">
 
             <fixture
                 density="1"
@@ -14,85 +14,105 @@
                 filter_maskBits="65535"
                 isSensor="false"
                 type="POLYGON"
-                numPolygons="6"
+                numPolygons="5"
                 >
 
 
-                <polygon numVertexes="7">
+                <polygon numVertexes="8">
 
-                    <vertex x="11.0000" y="31.0000" />
+                    <vertex x="-16.0000" y="-24.0000" />
 
-                    <vertex x="1.0000" y="32.0000" />
+                    <vertex x="-8.0000" y="-32.0000" />
 
-                    <vertex x="-14.0000" y="31.0000" />
+                    <vertex x="7.0000" y="-32.0000" />
 
-                    <vertex x="-8.0000" y="23.0000" />
+                    <vertex x="15.0000" y="-25.0000" />
 
-                    <vertex x="8.0000" y="23.0000" />
+                    <vertex x="16.0000" y="-10.0000" />
 
-                    <vertex x="14.0000" y="24.0000" />
+                    <vertex x="5.0000" y="1.0000" />
 
-                    <vertex x="16.0000" y="29.0000" />
+                    <vertex x="-5.0000" y="0.0000" />
+
+                    <vertex x="-16.0000" y="-8.0000" />
 
                 </polygon>
 
-                <polygon numVertexes="3">
+                <polygon numVertexes="5">
 
-                    <vertex x="-8.0000" y="23.0000" />
+                    <vertex x="8.0000" y="31.0000" />
 
-                    <vertex x="-14.0000" y="31.0000" />
+                    <vertex x="-9.0000" y="31.0000" />
 
-                    <vertex x="-16.0000" y="26.0000" />
+                    <vertex x="7.0000" y="21.0000" />
+
+                    <vertex x="14.0000" y="23.0000" />
+
+                    <vertex x="15.0000" y="27.0000" />
+
+                </polygon>
+
+                <polygon numVertexes="5">
+
+                    <vertex x="-9.0000" y="31.0000" />
+
+                    <vertex x="-8.0000" y="22.0000" />
+
+                    <vertex x="-7.0000" y="16.0000" />
+
+                    <vertex x="5.0000" y="1.0000" />
+
+                    <vertex x="7.0000" y="21.0000" />
 
                 </polygon>
 
                 <polygon numVertexes="4">
 
-                    <vertex x="-8.0000" y="23.0000" />
+                    <vertex x="-8.0000" y="22.0000" />
 
-                    <vertex x="-7.0000" y="17.0000" />
+                    <vertex x="-9.0000" y="31.0000" />
 
-                    <vertex x="5.0000" y="2.0000" />
+                    <vertex x="-14.0000" y="28.0000" />
 
-                    <vertex x="8.0000" y="23.0000" />
-
-                </polygon>
-
-                <polygon numVertexes="7">
-
-                    <vertex x="5.0000" y="2.0000" />
-
-                    <vertex x="-5.0000" y="1.0000" />
-
-                    <vertex x="-14.0000" y="-4.0000" />
-
-                    <vertex x="-16.0000" y="-23.0000" />
-
-                    <vertex x="7.0000" y="-31.0000" />
-
-                    <vertex x="15.0000" y="-24.0000" />
-
-                    <vertex x="16.0000" y="-9.0000" />
+                    <vertex x="-15.0000" y="25.0000" />
 
                 </polygon>
 
                 <polygon numVertexes="3">
 
-                    <vertex x="7.0000" y="-31.0000" />
+                    <vertex x="5.0000" y="1.0000" />
 
-                    <vertex x="-16.0000" y="-23.0000" />
+                    <vertex x="-7.0000" y="16.0000" />
 
-                    <vertex x="-8.0000" y="-31.0000" />
+                    <vertex x="-5.0000" y="0.0000" />
 
                 </polygon>
 
-                <polygon numVertexes="3">
 
-                    <vertex x="5.0000" y="2.0000" />
+            </fixture>
 
-                    <vertex x="-7.0000" y="17.0000" />
+            <fixture
+                density="2"
+                friction="0"
+                restitution="0"
+                filter_categoryBits="1"
+                filter_groupIndex="0"
+                filter_maskBits="65535"
+                isSensor="true"
+                type="POLYGON"
+                numPolygons="1"
+                >
 
-                    <vertex x="-5.0000" y="1.0000" />
+
+                <polygon numVertexes="4">
+
+                    <vertex x="-9.0000" y="32.0000" />
+
+                    <vertex x="-16.0000" y="28.0000" />
+
+                    <vertex x="16.0000" y="27.0000" />
+
+                    <vertex x="8.0000" y="32.0000" />
 
                 </polygon>
 
