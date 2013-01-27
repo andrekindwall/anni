@@ -23,6 +23,7 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 import android.hardware.SensorManager;
+import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -177,6 +178,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 
 	@Override
 	public void onSwipe(int direction) {
+		if(Math.abs(mPlayerBody.getLinearVelocity().y) > 0.05f){
+			return;
+		}
+		
 		switch(direction){
 		case SwipeListener.DIRECTION_UP:
 			jump();
