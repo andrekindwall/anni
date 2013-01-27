@@ -6,8 +6,8 @@
         <body name="player" dynamic="true" numFixtures="2">
 
             <fixture
-                density="1"
-                friction="0"
+                density="10"
+                friction="0.2"
                 restitution="0"
                 filter_categoryBits="1"
                 filter_groupIndex="0"

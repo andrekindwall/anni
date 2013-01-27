@@ -11,6 +11,7 @@ import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
+import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
@@ -32,6 +33,8 @@ import com.lolbro.anni.customs.ChaseCamera;
 import com.lolbro.anni.customs.SwipeScene;
 import com.lolbro.anni.customs.SwipeScene.SwipeListener;
 import com.lolbro.anni.debug.Box2dDebugRenderer;
+import com.lolbro.anni.level.LevelSegmentManager;
+import com.lolbro.anni.level.LevelSegmentManager.Segment;
 import com.lolbro.anni.physicseditor.PhysicsEditorShapeLibrary;
 
 public class MainActivity extends SimpleBaseGameActivity implements SwipeListener, IUpdateHandler, ContactListener {
@@ -39,27 +42,28 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
 	
-	public static final String FLOOR_USER_DATA = "segment_floor";
+	public static final String FLOOR_USERDATA = "segment_floor";
 	
 	private BitmapTextureAtlas mBackgroundTextureAtlas;
 	private ITextureRegion mBackgroundLayerBack;
 	
-	private BitmapTextureAtlas mSegmentsTextureAtlas;
-	private ITextureRegion mSegmentFloor1;
-	
 	private BitmapTextureAtlas mCharactersTextureAtlas;
 	private TiledTextureRegion mPlayerTextureRegion;
 	
+	private LevelSegmentManager mSegmentManager;
+	
 	private Body mPlayerBody;
 	
-	private PhysicsEditorShapeLibrary physicsEditorShapeLibrary;
-	private PhysicsEditorShapeLibrary levelShapeLibrary;
+	private PhysicsEditorShapeLibrary mPhysicsEditorShapeLibrary;
 	private SwipeScene mScene;
 	private ChaseCamera mCamera;
 	private PhysicsWorld mPhysicsWorld;
-
-	private int groundContact = 0;
-    
+	
+	private int mGroundContact = 0;
+	
+	private float mLastSegmentStartWorldPosition;
+	private int mLastSegmentIndex;
+	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		mCamera = new ChaseCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
@@ -78,22 +82,26 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mBackgroundLayerBack = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBackgroundTextureAtlas, this, "scene_background.png", 0, 0); //720x480
 		mBackgroundTextureAtlas.load();
 		
-		//Create atlas for level segments
-		mSegmentsTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 1024, 256);
-		mSegmentFloor1 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mSegmentsTextureAtlas, this, "segment_floor_1.png", 0, 0); //640x119
-		mSegmentsTextureAtlas.load();
-		
-		//Create texture atlas for mobs
+		//Create texture atlas for characters
 		mCharactersTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 128, 64, TextureOptions.BILINEAR);
-		mPlayerTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mCharactersTextureAtlas, this, "playerTile.png", 0, 0, 4, 1); //32x64
+		mPlayerTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mCharactersTextureAtlas, this, "player_tile.png", 0, 0, 4, 1); //128x64
 		mCharactersTextureAtlas.load();
 		
+		//Create atlas for level segments
+		BitmapTextureAtlas segmentsTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 1024, 512);
+		ITextureRegion segmentFloor1 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_1.png", 0, 0); //1024x128
+		ITextureRegion segmentFloor2 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_2.png", 0, 128); //1024x128
+		ITextureRegion segmentFloor3 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_3.png", 0, 256); //1024x128
+		segmentsTextureAtlas.load();
+		
+		mSegmentManager = new LevelSegmentManager(this);
+		mSegmentManager.addSegment("segment_floor_1", segmentFloor1);
+		mSegmentManager.addSegment("segment_floor_2", segmentFloor2);
+		mSegmentManager.addSegment("segment_floor_3", segmentFloor3);
+		
 		//Create shape collision importer
-		physicsEditorShapeLibrary = new PhysicsEditorShapeLibrary();
-        physicsEditorShapeLibrary.open(this, "shapes/player.xml");
-        
-        levelShapeLibrary = new PhysicsEditorShapeLibrary();
-        levelShapeLibrary.open(this, "shapes/segments.xml");
+		mPhysicsEditorShapeLibrary = new PhysicsEditorShapeLibrary();
+        mPhysicsEditorShapeLibrary.open(this, "shapes/player.xml");
 	}
 	
 	@Override
@@ -104,8 +112,9 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		final VertexBufferObjectManager vertexBufferObjectManager = getVertexBufferObjectManager();
 
 		mScene = new SwipeScene();
+		
 		//Register for frame updates
-//		mScene.registerUpdateHandler(this);
+		mScene.registerUpdateHandler(this);
 		
 
 		// =====================================================================
@@ -126,38 +135,36 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 //		activateBox2dRenderDebugging(vertexBufferObjectManager);
 		
-		// =====================================================================
-		// SEGMENTS
-		// =====================================================================
-		
-		//Create a sprite for the ground
-		Sprite floorSegment = new Sprite(0, -mSegmentFloor1.getHeight(), mSegmentFloor1, vertexBufferObjectManager);
-		
-		//Create collision for the ground
-		Body segmentBody = levelShapeLibrary.createBody("segment_floor_1", floorSegment, mPhysicsWorld);
-		segmentBody.setUserData(FLOOR_USER_DATA);
-		
-		//Make the ground visible
-		mScene.attachChild(floorSegment);
-		
 		
 		// =====================================================================
-		// PLAYER
+		// LEVEL SEGMENT MANAGER
 		// =====================================================================
+		
+		//Place all segments in the scene
+		mSegmentManager.attachToWorld(vertexBufferObjectManager, mPhysicsWorld, mScene);
+		
+		//Get a random segment and place it as the first segment in the level
+		Segment segment = mSegmentManager.getRandom();
+		placeSegmentAtPosition(segment, 0, false);
+		
+		
+//		// =====================================================================
+//		// PLAYER
+//		// =====================================================================
 		
 		//Create a sprite for our player
-		AnimatedSprite playerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
+		AnimatedSprite playerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
 		playerSprite.animate(65);
 		playerSprite.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		
 		//Create the player body and set its collision
-		mPlayerBody = physicsEditorShapeLibrary.createBody("player", playerSprite, mPhysicsWorld);
+		mPlayerBody = mPhysicsEditorShapeLibrary.createBody("player", playerSprite, mPhysicsWorld);
 		
 		// Place the player in the scene
 		mScene.attachChild(playerSprite);		
 		
-		// Connect the player to follow laws of physics in the world
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerSprite, mPlayerBody, true, true));
+		//Keep Sprite and Body in sync
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerSprite, mPlayerBody, true, false));
 
 		// Prevent player to rotate
 		mPlayerBody.setFixedRotation(true);
@@ -174,6 +181,33 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		return mScene;
 	}
 	
+	private void placeSegmentAtPosition(Segment segment, float startPositionX, boolean isWorldPosition) {
+		float segmentHeight = segment.getRegion().getHeight();
+
+		float worldStartPositionX;
+		float worldCenterPositionY = (-segmentHeight / 2) / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
+
+		float scenePositionX;
+		float scenePositionY = -segmentHeight;
+		
+		if(isWorldPosition){
+			worldStartPositionX = startPositionX;
+			scenePositionX = startPositionX * PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
+		} else {
+			worldStartPositionX = startPositionX / PhysicsConstants.PIXEL_TO_METER_RATIO_DEFAULT;
+			scenePositionX = startPositionX;
+		}
+		float worldCenterPositionX = worldStartPositionX + segment.getWorldCoordinatesWidth() / 2;
+		
+		segment.getSprite().setX(scenePositionX);
+		segment.getSprite().setY(scenePositionY);
+		
+		segment.getBody().setTransform(worldCenterPositionX, worldCenterPositionY, 0);
+		
+		mLastSegmentStartWorldPosition = Math.max(mLastSegmentStartWorldPosition, worldStartPositionX);
+		mLastSegmentIndex = segment.getIndex();
+	}
+	
 	@SuppressWarnings("unused")
 	private void activateBox2dRenderDebugging(VertexBufferObjectManager vertexBufferObjectManager) {
 		mScene.attachChild(new Box2dDebugRenderer(mPhysicsWorld, vertexBufferObjectManager));
@@ -184,11 +218,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		super.onResumeGame();
 		mScene.registerForGestureDetection(this, this);
 	}
-
+	
 	@Override
-	public void onUpdate(float pSecondsElapsed) {
-
-
+	public synchronized void onPauseGame() {
+		super.onPauseGame();
 		
 	}
 	
@@ -207,13 +240,23 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	}
 	
 	@Override
+	public void onUpdate(float pSecondsElapsed) {
+		mPlayerBody.setLinearVelocity(5, mPlayerBody.getLinearVelocity().y);
+		
+		if(mPlayerBody.getPosition().x > mLastSegmentStartWorldPosition){
+			Segment segment = mSegmentManager.getRandom(mLastSegmentIndex);
+			placeSegmentAtPosition(segment, mLastSegmentStartWorldPosition + segment.getWorldCoordinatesWidth(), true);
+		}
+	}
+	
+	@Override
 	public void reset() {
 		
 	}
 
 	@Override
 	public void onSwipe(int direction) {
-		if(groundContact <= 0){
+		if(mGroundContact <= 0){
 			return;
 		}
 		
@@ -232,15 +275,15 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 
 	@Override
 	public void beginContact(Contact contact) {
-		if(contact.getFixtureB().getBody() == mPlayerBody && contact.getFixtureA().getBody().getUserData().equals(FLOOR_USER_DATA)){
-			groundContact++;
+		if(contact.getFixtureB().getBody() == mPlayerBody && contact.getFixtureA().getBody().getUserData().equals(FLOOR_USERDATA)){
+			mGroundContact++;
 		}
 	}
 
 	@Override
 	public void endContact(Contact contact) {
-		if(contact.getFixtureB().getBody() == mPlayerBody && contact.getFixtureA().getBody().getUserData().equals(FLOOR_USER_DATA)){
-			groundContact--;
+		if(contact.getFixtureB().getBody() == mPlayerBody && contact.getFixtureA().getBody().getUserData().equals(FLOOR_USERDATA)){
+			mGroundContact--;
 		}
 	}
 
