@@ -9,7 +9,6 @@ import org.andengine.entity.scene.background.AutoParallaxBackground;
 import org.andengine.entity.scene.background.ParallaxBackground.ParallaxEntity;
 import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.entity.sprite.Sprite;
-import org.andengine.entity.util.FPSLogger;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.texture.TextureOptions;
@@ -57,9 +56,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private SwipeScene mScene;
 	private ChaseCamera mCamera;
 	private PhysicsWorld mPhysicsWorld;
-	
-	private int groundContact = 0;
 
+	private int groundContact = 0;
     
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -99,13 +97,14 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	@Override
 	protected Scene onCreateScene() {
-		mEngine.registerUpdateHandler(new FPSLogger());
+		// In need of debugging
+//		mEngine.registerUpdateHandler(new FPSLogger());
 		
 		final VertexBufferObjectManager vertexBufferObjectManager = getVertexBufferObjectManager();
-		
+
 		mScene = new SwipeScene();
 		//Register for frame updates
-		mScene.registerUpdateHandler(this);
+//		mScene.registerUpdateHandler(this);
 		
 
 		// =====================================================================
@@ -141,7 +140,6 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mScene.attachChild(floorSegment);
 		
 		
-		
 		// =====================================================================
 		// PLAYER
 		// =====================================================================
@@ -160,6 +158,9 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 
 		// Prevent player to rotate
 		mPlayerBody.setFixedRotation(true);
+		
+		// Give player constant speed
+		mPlayerBody.setLinearVelocity(5f, mPlayerBody.getLinearVelocity().y);
 		
 		// Set camera to follow player
 		mCamera.setChaseEntity(playerSprite);
@@ -182,6 +183,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
+
+
 		
 	}
 	

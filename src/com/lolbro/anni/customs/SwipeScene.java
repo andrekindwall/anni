@@ -6,7 +6,7 @@ import org.andengine.input.touch.detector.SurfaceGestureDetector;
 import android.content.Context;
 
 public class SwipeScene extends Scene {
-	
+
 	public static final int MIN_SWIPE_DISTANCE = 120;
 	
 	private SwipeListener listener;
