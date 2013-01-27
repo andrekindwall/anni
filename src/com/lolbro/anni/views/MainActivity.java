@@ -23,7 +23,6 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
 import android.hardware.SensorManager;
-import android.util.Log;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -32,16 +31,12 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.lolbro.anni.customs.ChaseCamera;
 import com.lolbro.anni.customs.SwipeScene;
 import com.lolbro.anni.customs.SwipeScene.SwipeListener;
+import com.lolbro.anni.physicseditor.PhysicsEditorShapeLibrary;
 
 public class MainActivity extends SimpleBaseGameActivity implements SwipeListener, IUpdateHandler {
 	
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
-	
-	/**
-	 *  Physic laws constant, only used by player at the moment
-	 */
-	private static final FixtureDef FIXTURE_DEF = PhysicsFactory.createFixtureDef(1, 0f, 0.5f);
 	
 	private BitmapTextureAtlas mBackgroundTextureAtlas;
 	private ITextureRegion mBackgroundLayerBack;
@@ -51,11 +46,12 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	private Body mPlayerBody;
 	
+	private PhysicsEditorShapeLibrary physicsEditorShapeLibrary;
 	private SwipeScene mScene;
 	private ChaseCamera mCamera;
-
 	private PhysicsWorld mPhysicsWorld;
-	
+
+    
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		mCamera = new ChaseCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
@@ -78,6 +74,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mCharactersTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 64, TextureOptions.BILINEAR);
 		mPlayerTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mCharactersTextureAtlas, this, "player.png", 0, 0, 1, 1);
 		mCharactersTextureAtlas.load();
+		
+		//Create shape collision importer
+		physicsEditorShapeLibrary = new PhysicsEditorShapeLibrary();
+        physicsEditorShapeLibrary.open(this, "shapes/player.xml");
 	}
 
 	@Override
@@ -126,8 +126,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		//Create a sprite for our player
 		AnimatedSprite playerSprite = new AnimatedSprite(CAMERA_WIDTH/2, CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
 		
-		//Create the player body and set its collision. We use BoxBody for now
-		mPlayerBody = PhysicsFactory.createBoxBody(mPhysicsWorld, playerSprite, BodyType.DynamicBody, FIXTURE_DEF);	
+		//Create the player body and set its collision
+		mPlayerBody = this.physicsEditorShapeLibrary.createBody("player", playerSprite, mPhysicsWorld);
 		
 		// Place the player in the scene
 		mScene.attachChild(playerSprite);		
