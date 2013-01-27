@@ -132,10 +132,11 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		// Place the player in the scene
 		mScene.attachChild(playerSprite);		
 		
-
 		// Connect the player to follow laws of physics in the world
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerSprite, mPlayerBody, true, true));
 
+		// Prevent player to rotate
+		mPlayerBody.setFixedRotation(true);
 		
 		// Set camera to follow player
 		mCamera.setChaseEntity(playerSprite);
