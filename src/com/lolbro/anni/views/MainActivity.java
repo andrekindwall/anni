@@ -1,6 +1,5 @@
 package com.lolbro.anni.views;
 
-import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
@@ -31,6 +30,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.lolbro.anni.customs.ChaseCamera;
 
 public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouchListener, IUpdateHandler {
 	
@@ -51,7 +51,7 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	private Body mPlayerBody;
 	
 	private Scene mScene;
-	private Camera mCamera;
+	private ChaseCamera mCamera;
 
 	private PhysicsWorld mPhysicsWorld;
 	
@@ -60,7 +60,7 @@ public class MainActivity extends SimpleBaseGameActivity implements IOnSceneTouc
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-		mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+		mCamera = new ChaseCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 
 		//TODO Decide if we should use new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT) instead of
 		//new FillResolutionPolicy(), to ensure same ratio on all devices
