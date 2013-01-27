@@ -4,7 +4,6 @@ import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.FillResolutionPolicy;
-import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.AutoParallaxBackground;
 import org.andengine.entity.scene.background.ParallaxBackground.ParallaxEntity;
@@ -12,7 +11,6 @@ import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.util.FPSLogger;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
-import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.texture.TextureOptions;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
@@ -26,8 +24,6 @@ import android.hardware.SensorManager;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.lolbro.anni.customs.ChaseCamera;
 import com.lolbro.anni.customs.SwipeScene;
 import com.lolbro.anni.customs.SwipeScene.SwipeListener;
@@ -41,12 +37,16 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private BitmapTextureAtlas mBackgroundTextureAtlas;
 	private ITextureRegion mBackgroundLayerBack;
 	
+	private BitmapTextureAtlas mSegmentsTextureAtlas;
+	private ITextureRegion mSegmentFloor1;
+	
 	private BitmapTextureAtlas mCharactersTextureAtlas;
 	private TiledTextureRegion mPlayerTextureRegion;
 	
 	private Body mPlayerBody;
-	
+
 	private PhysicsEditorShapeLibrary physicsEditorShapeLibrary;
+	private PhysicsEditorShapeLibrary levelShapeLibrary;
 	private SwipeScene mScene;
 	private ChaseCamera mCamera;
 	private PhysicsWorld mPhysicsWorld;
@@ -67,17 +67,25 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 		//Create atlas for background
 		mBackgroundTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 1024, 512);
-		mBackgroundLayerBack = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBackgroundTextureAtlas, this, "scene_background.png", 0, 0);
+		mBackgroundLayerBack = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mBackgroundTextureAtlas, this, "scene_background.png", 0, 0); //720x480
 		mBackgroundTextureAtlas.load();
+		
+		//Create atlas for level segments
+		mSegmentsTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 1024, 256);
+		mSegmentFloor1 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(mSegmentsTextureAtlas, this, "segment_floor_1.png", 0, 0); //640x119
+		mSegmentsTextureAtlas.load();
 		
 		//Create texture atlas for mobs
 		mCharactersTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 32, 64, TextureOptions.BILINEAR);
-		mPlayerTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mCharactersTextureAtlas, this, "player.png", 0, 0, 1, 1);
+		mPlayerTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(mCharactersTextureAtlas, this, "player.png", 0, 0, 1, 1); //32x64
 		mCharactersTextureAtlas.load();
 		
 		//Create shape collision importer
 		physicsEditorShapeLibrary = new PhysicsEditorShapeLibrary();
         physicsEditorShapeLibrary.open(this, "shapes/player.xml");
+        
+        levelShapeLibrary = new PhysicsEditorShapeLibrary();
+        levelShapeLibrary.open(this, "shapes/segments.xml");
 	}
 
 	@Override
@@ -105,17 +113,20 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		//Create physic world and set gravity
 		mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_NEPTUNE), false);
 		
-		//Set the properties for our walls
-		final FixtureDef wallFixtureDef = PhysicsFactory.createFixtureDef(0, 0f, 0.5f);
 		
-		//Create a shape for the ground
-		final Rectangle ground = new Rectangle(0, CAMERA_HEIGHT - 2, CAMERA_WIDTH, 2, vertexBufferObjectManager);
-
-		//Create physics/collision for the ground
-		PhysicsFactory.createBoxBody(mPhysicsWorld, ground, BodyType.StaticBody, wallFixtureDef);
-	
-		//Make the ground visible in the scene
-		mScene.attachChild(ground);
+		
+		// =====================================================================
+		// SEGMENTS
+		// =====================================================================
+		
+		//Create a sprite for the ground
+		Sprite floorSegment = new Sprite(0, -mSegmentFloor1.getHeight(), mSegmentFloor1, vertexBufferObjectManager);
+		
+		//Create collision for the ground
+		levelShapeLibrary.createBody("segment_floor_1", floorSegment, mPhysicsWorld);
+		
+		//Make the ground visible
+		mScene.attachChild(floorSegment);
 		
 		
 		
@@ -124,10 +135,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		// =====================================================================
 		
 		//Create a sprite for our player
-		AnimatedSprite playerSprite = new AnimatedSprite(CAMERA_WIDTH/2, CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
+		AnimatedSprite playerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, this.getVertexBufferObjectManager());
 		
 		//Create the player body and set its collision
-		mPlayerBody = this.physicsEditorShapeLibrary.createBody("player", playerSprite, mPhysicsWorld);
+		mPlayerBody = physicsEditorShapeLibrary.createBody("player", playerSprite, mPhysicsWorld);
 		
 		// Place the player in the scene
 		mScene.attachChild(playerSprite);		
