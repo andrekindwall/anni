@@ -141,9 +141,6 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	@Override
 	protected Scene onCreateScene() {
-		// In need of debugging
-//		mEngine.registerUpdateHandler(new FPSLogger());
-		
 		final VertexBufferObjectManager vertexBufferObjectManager = getVertexBufferObjectManager();
 
 		mScene = new SwipeScene();
@@ -169,11 +166,26 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mPhysicsWorld.setContactListener(this);
 		
 		// =====================================================================
-		// DEBUG TOOL
+		// DEBUG TOOLS
 		// =====================================================================
 		
 //		activateBox2dRenderDebugging(vertexBufferObjectManager);
 		
+		//Print fps
+//		final FPSCounter fpsCounter = new FPSCounter();
+//        this.mEngine.registerUpdateHandler(fpsCounter);
+//		HUD hud=new HUD();
+//		Font font = FontFactory.create(this.getFontManager(), this.getTextureManager(), 256, 256, Typeface.create(Typeface.DEFAULT, Typeface.BOLD), 32);
+//		font.load();
+//		final Text text = new Text(10, 10, font, "FPS: ", 20, new TextOptions(HorizontalAlign.CENTER), vertexBufferObjectManager);
+//		hud.attachChild(text);
+//		mCamera.setHUD(hud);
+//		mScene.registerUpdateHandler(new TimerHandler(1 / 20.0f, true, new ITimerCallback() {
+//		                @Override
+//		                public void onTimePassed(final TimerHandler pTimerHandler) {
+//		                         text.setText("FPS: " + fpsCounter.getFPS());
+//		        }
+//		}));
 		
 		// =====================================================================
 		// LEVEL SEGMENT MANAGER
