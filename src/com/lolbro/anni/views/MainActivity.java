@@ -66,6 +66,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private PhysicsWorld mPhysicsWorld;
 	
 	private int mGroundContact = 0;
+	private boolean swipeRight = false;
+	private short rightRollCounter = 0;
 	
 	private float mLastSegmentStartWorldPosition;
 	private int mLastSegmentIndex;
@@ -260,7 +262,27 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
-		mPlayerBody.setLinearVelocity(5, mPlayerBody.getLinearVelocity().y);
+		
+		if (swipeRight == true) {
+			if (rightRollCounter < 30) {
+				
+				rightRollCounter ++;
+				mPlayerBody.setLinearVelocity(10, mPlayerBody.getLinearVelocity().y);
+			}
+			
+			else if (rightRollCounter < 45) {
+				
+				rightRollCounter ++;
+				mPlayerBody.setLinearVelocity(-15, mPlayerBody.getLinearVelocity().y);
+			}
+			else {
+				rightRollCounter = 0;
+				swipeRight = false;
+			}
+		}
+		
+		else{
+		mPlayerBody.setLinearVelocity(5, mPlayerBody.getLinearVelocity().y); }
 		
 		if(mPlayerBody.getPosition().x > mLastSegmentStartWorldPosition){
 			Segment segment = mSegmentManager.getRandom(mLastSegmentIndex);
@@ -285,6 +307,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 				jumpLeft();
 				break;
 			case SwipeListener.DIRECTION_RIGHT:
+				swipeRight = true;
 				jumpRight();
 				break;
 			}
