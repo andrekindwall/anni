@@ -10,6 +10,7 @@ import org.andengine.entity.scene.background.ParallaxBackground.ParallaxEntity;
 import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
+import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.opengl.texture.TextureOptions;
@@ -27,6 +28,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.lolbro.anni.customs.ChaseCamera;
 import com.lolbro.anni.customs.SwipeScene;
@@ -55,10 +57,27 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private TiledTextureRegion mPlayerTextureRegion;
 	
 	private AnimatedSprite mPlayerSprite;
+	private AnimatedSprite mCameraSprite;
 	
 	private LevelSegmentManager mSegmentManager;
 	
 	private Body mPlayerBody;
+	private Body mCameraBody;
+	
+	// Collision categories
+	public static final short CATEGORYBIT_WALL = 1;
+	public static final short CATEGORYBIT_PLAYER = 2;
+	public static final short CATEGORYBIT_CAMERA = 4;
+	
+	// Collision declarations
+	public static final short MASKBITS_WALL = CATEGORYBIT_WALL + CATEGORYBIT_PLAYER;
+	public static final short MASKBITS_PLAYER = CATEGORYBIT_WALL;
+	public static final short MASKBITS_CAMERA = 0;
+	
+	public static final FixtureDef WALL_FIXTURE_DEF = PhysicsFactory.createFixtureDef(0f, 0f, 0f, false, CATEGORYBIT_WALL, MASKBITS_WALL, (short)0);
+	public static final FixtureDef PLAYER_FIXTURE_DEF = PhysicsFactory.createFixtureDef(0f, 0f, 0f, false, CATEGORYBIT_PLAYER, MASKBITS_PLAYER, (short)0);
+	public static final FixtureDef CAMERA_FIXTURE_DEF = PhysicsFactory.createFixtureDef(0f, 0f, 0f, false, CATEGORYBIT_CAMERA, MASKBITS_CAMERA, (short)0);
+	// Collisions ends
 	
 	private PhysicsEditorShapeLibrary mPhysicsEditorShapeLibrary;
 	private SwipeScene mScene;
@@ -173,7 +192,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mPlayerBody = mPhysicsEditorShapeLibrary.createBody("player", mPlayerSprite, mPhysicsWorld);
 		
 		// Place the player in the scene
-		mScene.attachChild(mPlayerSprite);		
+		mScene.attachChild(mPlayerSprite);
 		
 		//Keep Sprite and Body in sync
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(mPlayerSprite, mPlayerBody, true, false));
@@ -181,12 +200,31 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		// Prevent player to rotate
 		mPlayerBody.setFixedRotation(true);
 		
-		// Give player constant speed
-		mPlayerBody.setLinearVelocity(5f, mPlayerBody.getLinearVelocity().y);
+
+		// =====================================================================
+		// CAMERA SPRITE
+		// =====================================================================
 		
-		// Set camera to follow player
-		mCamera.setChaseEntity(mPlayerSprite);
+		mCameraSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
 		
+		mCameraBody = mPhysicsEditorShapeLibrary.createBody("player", mCameraSprite, mPhysicsWorld);
+		
+		mScene.attachChild(mCameraSprite);
+		
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(mCameraSprite, mCameraBody, true, false));
+		
+//		// Move camera body to player sprite
+//		final Vector2 v2 = Vector2Pool.obtain(mPlayerSprite.getX() / 32, mPlayerSprite.getY() / 32);
+//		mCameraBody.setTransform(v2, 0);
+//		Vector2Pool.recycle(v2);
+		
+		// Give camera constant speed
+		mCameraBody.setLinearVelocity(10, mCameraBody.getLinearVelocity().y);
+		
+		mCameraBody.applyForce(0, -GRAVITY_VALUE, 0, 0);
+		
+		// Set camera to follow camera sprite
+		mCamera.setChaseEntity(mCameraSprite);		
 		
 		mScene.registerUpdateHandler(mPhysicsWorld);
 		
@@ -294,36 +332,48 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	public void reset() {
 		
 	}
+	
+	private boolean touchingGround() {
+		return mGroundContact > 0;
+	}
 
 	@Override
 	public void onSwipe(int direction) {
-		if(mGroundContact <= 0){
-			
-			switch(direction){			
-			case SwipeListener.DIRECTION_DOWN:
-				jumpDown();
-				break;
-			case SwipeListener.DIRECTION_LEFT:
-				jumpLeft();
-				break;
-			case SwipeListener.DIRECTION_RIGHT:
-				swipeRight = true;
-				jumpRight();
-				break;
-			}
-			
-			return;
-		}
+//		if(mGroundContact <= 0){
+//			
+//			switch(direction){			
+//			case SwipeListener.DIRECTION_DOWN:
+//				jumpDown();
+//				break;
+//			case SwipeListener.DIRECTION_LEFT:
+//				jumpLeft();
+//				break;
+//			case SwipeListener.DIRECTION_RIGHT:
+//				swipeRight = true;
+//				jumpRight();
+//				break;
+//			}
+//			
+//			return;
+//		}
 		
 		switch(direction){
 		case SwipeListener.DIRECTION_UP:
-			jumpUp();
+			if(touchingGround()){				
+				jumpUp();
+			}
 			break;
 		case SwipeListener.DIRECTION_LEFT:
 			jumpLeft();
 			break;
 		case SwipeListener.DIRECTION_RIGHT:
+			swipeRight = true;
 			jumpRight();
+			break;
+		case SwipeListener.DIRECTION_DOWN:
+			if(touchingGround() == false){				
+				jumpDown();
+			}
 			break;
 		}
 	}
