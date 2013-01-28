@@ -20,7 +20,6 @@ import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
-import android.hardware.SensorManager;
 import android.opengl.GLES20;
 
 import com.badlogic.gdx.math.Vector2;
@@ -45,6 +44,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
+	public static final float GRAVITY_VALUE = 25.00000f;
 	
 	public static final String FLOOR_USERDATA = "segment_floor";
 	
@@ -53,6 +53,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	private BitmapTextureAtlas mCharactersTextureAtlas;
 	private TiledTextureRegion mPlayerTextureRegion;
+	
+	private AnimatedSprite mPlayerSprite;
 	
 	private LevelSegmentManager mSegmentManager;
 	
@@ -136,7 +138,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mScene.setBackground(autoParallaxBackground);
 		
 		//Create physic world and set gravity
-		mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_NEPTUNE), false);
+		mPhysicsWorld = new PhysicsWorld(new Vector2(0, GRAVITY_VALUE), false);
 		
 		//Register for contact changes. Needed to check if user stands on ground
 		mPhysicsWorld.setContactListener(this);
@@ -161,18 +163,18 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 //		// =====================================================================
 		
 		//Create a sprite for our player
-		AnimatedSprite playerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
-		playerSprite.animate(65);
-		playerSprite.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+		mPlayerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
+		mPlayerSprite.animate(65);
+		mPlayerSprite.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		
 		//Create the player body and set its collision
-		mPlayerBody = mPhysicsEditorShapeLibrary.createBody("player", playerSprite, mPhysicsWorld);
+		mPlayerBody = mPhysicsEditorShapeLibrary.createBody("player", mPlayerSprite, mPhysicsWorld);
 		
 		// Place the player in the scene
-		mScene.attachChild(playerSprite);		
+		mScene.attachChild(mPlayerSprite);		
 		
 		//Keep Sprite and Body in sync
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(playerSprite, mPlayerBody, true, false));
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(mPlayerSprite, mPlayerBody, true, false));
 
 		// Prevent player to rotate
 		mPlayerBody.setFixedRotation(true);
@@ -181,7 +183,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		mPlayerBody.setLinearVelocity(5f, mPlayerBody.getLinearVelocity().y);
 		
 		// Set camera to follow player
-		mCamera.setChaseEntity(playerSprite);
+		mCamera.setChaseEntity(mPlayerSprite);
 		
 		
 		mScene.registerUpdateHandler(mPhysicsWorld);
@@ -234,7 +236,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	}
 	
 	private void jump() {
-		mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -5);
+		mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -13);
 	}
 
 	//TODO Merge jump(), jumpLeft() and jumpRight() into jump(int direction)
