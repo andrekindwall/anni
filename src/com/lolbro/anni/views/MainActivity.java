@@ -1,4 +1,3 @@
-//test
 package com.lolbro.anni.views;
 
 import org.andengine.engine.handler.IUpdateHandler;
