@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- created with http://www.physicseditor.de -->
 <bodydef version="1.0">
-    <bodies numBodies="1">
+    <bodies numBodies="2">
 
         <body name="player" dynamic="true" numFixtures="2">
 
@@ -113,6 +113,38 @@
                     <vertex x="16.0000" y="27.0000" />
 
                     <vertex x="8.0000" y="32.0000" />
+
+                </polygon>
+
+
+            </fixture>
+
+        </body>
+        
+        <body name="camera" dynamic="true" numFixtures="1">
+
+            <fixture
+                density="0"
+                friction="0"
+                restitution="0"
+                filter_categoryBits="1"
+                filter_groupIndex="0"
+                filter_maskBits="65535"
+                isSensor="true"
+                type="POLYGON"
+                numPolygons="1"
+                >
+
+
+                <polygon numVertexes="4">
+
+                    <vertex x="-1.0000" y="1.0000" />
+
+                    <vertex x="-1.0000" y="-1.0000" />
+
+                    <vertex x="1.0000" y="-1.0000" />
+
+                    <vertex x="1.0000" y="1.0000" />
 
                 </polygon>
 

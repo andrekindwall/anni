@@ -212,21 +212,16 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 		mCameraSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
 		
-		mCameraBody = mPhysicsEditorShapeLibrary.createBody("player", mCameraSprite, mPhysicsWorld);
+		mCameraBody = mPhysicsEditorShapeLibrary.createBody("camera", mCameraSprite, mPhysicsWorld);
 		
 		mScene.attachChild(mCameraSprite);
 		
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(mCameraSprite, mCameraBody, true, false));
 		
-//		// Move camera body to player sprite
-//		final Vector2 v2 = Vector2Pool.obtain(mPlayerSprite.getX() / 32, mPlayerSprite.getY() / 32);
-//		mCameraBody.setTransform(v2, 0);
-//		Vector2Pool.recycle(v2);
-		
 		// Give camera constant speed
-		mCameraBody.setLinearVelocity(10, mCameraBody.getLinearVelocity().y);
+		mCameraBody.setLinearVelocity(100, mCameraBody.getLinearVelocity().y);
 		
-		mCameraBody.applyForce(0, -GRAVITY_VALUE, 0, 0);
+		mCameraBody.setGravityScale(0);
 		
 		// Set camera to follow camera sprite
 		mCamera.setChaseEntity(mCameraSprite);		
