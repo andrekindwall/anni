@@ -6,8 +6,8 @@
         <body name="player" dynamic="true" numFixtures="2">
 
             <fixture
-                density="10"
-                friction="0.2"
+                density="0"
+                friction="0"
                 restitution="0"
                 filter_categoryBits="1"
                 filter_groupIndex="0"
@@ -92,7 +92,7 @@
             </fixture>
 
             <fixture
-                density="2"
+                density="0"
                 friction="0"
                 restitution="0"
                 filter_categoryBits="1"
@@ -155,7 +155,7 @@
 
     </bodies>
     <metadata>
-        <format>1</format>
+        <format>2</format>
         <ptm_ratio></ptm_ratio>
     </metadata>
 </bodydef>

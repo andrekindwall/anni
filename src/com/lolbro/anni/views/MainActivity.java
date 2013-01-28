@@ -62,7 +62,6 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private TiledTextureRegion mPlayerTextureRegion;
 	
 	private AnimatedSprite mPlayerSprite;
-	private AnimatedSprite mCameraSprite;
 	
 	private LevelSegmentManager mSegmentManager;
 	
@@ -169,6 +168,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		//Register for contact changes. Needed to check if user stands on ground
 		mPhysicsWorld.setContactListener(this);
 		
+		// =====================================================================
+		// DEBUG TOOL
+		// =====================================================================
+		
 //		activateBox2dRenderDebugging(vertexBufferObjectManager);
 		
 		
@@ -210,25 +213,72 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		// CAMERA SPRITE
 		// =====================================================================
 		
-		mCameraSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
+		Sprite cameraSprite = new Sprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
 		
-		mCameraBody = mPhysicsEditorShapeLibrary.createBody("camera", mCameraSprite, mPhysicsWorld);
+		mCameraBody = mPhysicsEditorShapeLibrary.createBody("camera", cameraSprite, mPhysicsWorld);
 		
-		mScene.attachChild(mCameraSprite);
-		
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(mCameraSprite, mCameraBody, true, false));
-		
-		// Give camera constant speed
-		mCameraBody.setLinearVelocity(100, mCameraBody.getLinearVelocity().y);
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(cameraSprite, mCameraBody, true, false));
 		
 		mCameraBody.setGravityScale(0);
 		
 		// Set camera to follow camera sprite
-		mCamera.setChaseEntity(mCameraSprite);		
+		mCamera.setChaseEntity(cameraSprite);
 		
 		mScene.registerUpdateHandler(mPhysicsWorld);
 		
 		return mScene;
+	}
+	
+	// =====================================================================
+	// THINGS TO HAPPEN ON EACH UPDATE
+	// =====================================================================
+	
+	@Override
+	public void onUpdate(float pSecondsElapsed) {
+		
+		if (mCameraBody.getLinearVelocity().x < 5) {
+			mCameraBody.setLinearVelocity(5, mCameraBody.getLinearVelocity().y);
+		}
+		
+		if (swipeRight == true) {
+			if (rightRollCounter < 20) {
+				rightRollCounter ++;
+				mPlayerBody.setLinearVelocity(15, mPlayerBody.getLinearVelocity().y);
+			} else if (mPlayerBody.getPosition().x > mCameraBody.getPosition().x) {
+				mPlayerBody.setLinearVelocity(-15, mPlayerBody.getLinearVelocity().y);
+			} else {
+				rightRollCounter = 0;
+				swipeRight = false;
+			}
+		} else if (mPlayerBody.getPosition().x != mCameraBody.getPosition().x) {
+			mPlayerBody.setTransform(mCameraBody.getPosition().x, mPlayerBody.getPosition().y, 0);
+		}
+		
+		if (mPlayerBody.getPosition().x > mLastSegmentStartWorldPosition){
+			Segment segment = mSegmentManager.getRandom(mLastSegmentIndex);
+			placeSegmentAtPosition(segment, mLastSegmentStartWorldPosition + segment.getWorldCoordinatesWidth(), true);
+		}
+	}
+	
+	// =====================================================================
+	// METHODS
+	// =====================================================================
+	
+	private void jump(int direction){
+		switch(direction){
+		case JUMP_UP:
+			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -13);
+			break;
+		case JUMP_DOWN:
+			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, 15);
+			break;
+		case JUMP_LEFT:
+			mPlayerBody.setLinearVelocity(-3.5f, mPlayerBody.getLinearVelocity().y);
+			break;
+		case JUMP_RIGHT:
+			mPlayerBody.setLinearVelocity(3.5f, mPlayerBody.getLinearVelocity().y);
+			break;
+		}
 	}
 	
 	private void placeSegmentAtPosition(Segment segment, float startPositionX, boolean isWorldPosition) {
@@ -273,58 +323,6 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	public synchronized void onPauseGame() {
 		super.onPauseGame();
 		
-	}
-	
-	private void jump(int direction){
-		switch(direction){
-		case JUMP_UP:
-			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -13);
-			break;
-		case JUMP_DOWN:
-			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, 15);
-			break;
-		case JUMP_LEFT:
-			mPlayerBody.setLinearVelocity(-3.5f, mPlayerBody.getLinearVelocity().y);
-			break;
-		case JUMP_RIGHT:
-			mPlayerBody.setLinearVelocity(3.5f, mPlayerBody.getLinearVelocity().y);
-			break;
-		}
-	}
-	
-	
-	// =====================================================================
-	// THINGS TO HAPPEN ON EACH UPDATE
-	// =====================================================================
-	
-	@Override
-	public void onUpdate(float pSecondsElapsed) {
-		
-		if (swipeRight == true) {
-			if (rightRollCounter < 30) {
-				
-				rightRollCounter ++;
-				mPlayerBody.setLinearVelocity(10, mPlayerBody.getLinearVelocity().y);
-			}
-			
-			else if (rightRollCounter < 45) {
-				
-				rightRollCounter ++;
-				mPlayerBody.setLinearVelocity(-15, mPlayerBody.getLinearVelocity().y);
-			}
-			else {
-				rightRollCounter = 0;
-				swipeRight = false;
-			}
-		}
-		
-		else{
-		mPlayerBody.setLinearVelocity(5, mPlayerBody.getLinearVelocity().y); }
-		
-		if(mPlayerBody.getPosition().x > mLastSegmentStartWorldPosition){
-			Segment segment = mSegmentManager.getRandom(mLastSegmentIndex);
-			placeSegmentAtPosition(segment, mLastSegmentStartWorldPosition + segment.getWorldCoordinatesWidth(), true);
-		}
 	}
 	
 	@Override
