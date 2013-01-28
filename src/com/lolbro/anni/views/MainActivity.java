@@ -47,6 +47,11 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
 	public static final float GRAVITY_VALUE = 25.00000f;
+
+	public static final int JUMP_UP = 1;
+	public static final int JUMP_DOWN = 2;
+	public static final int JUMP_LEFT = 3;
+	public static final int JUMP_RIGHT = 4;
 	
 	public static final String FLOOR_USERDATA = "segment_floor";
 	
@@ -275,24 +280,23 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 	}
 	
-	private void jumpUp() {
-		mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -13);
+	private void jump(int direction){
+		switch(direction){
+		case JUMP_UP:
+			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -13);
+			break;
+		case JUMP_DOWN:
+			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, 15);
+			break;
+		case JUMP_LEFT:
+			mPlayerBody.setLinearVelocity(-3.5f, mPlayerBody.getLinearVelocity().y);
+			break;
+		case JUMP_RIGHT:
+			mPlayerBody.setLinearVelocity(3.5f, mPlayerBody.getLinearVelocity().y);
+			break;
+		}
 	}
 	
-	private void jumpDown() {
-		mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, 15);
-	}
-
-	//TODO Merge jump(), jumpLeft() and jumpRight() into jump(int direction)
-	private void jumpLeft() {
-		mPlayerBody.setLinearVelocity(-3.5f, mPlayerBody.getLinearVelocity().y);
-	}
-
-	//TODO Merge jump(), jumpLeft() and jumpRight() into jump(int direction)
-	private void jumpRight() {
-		
-		mPlayerBody.setLinearVelocity(3.5f, mPlayerBody.getLinearVelocity().y);
-	}
 	
 	// =====================================================================
 	// THINGS TO HAPPEN ON EACH UPDATE
@@ -339,43 +343,27 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 
 	@Override
 	public void onSwipe(int direction) {
-//		if(mGroundContact <= 0){
-//			
-//			switch(direction){			
-//			case SwipeListener.DIRECTION_DOWN:
-//				jumpDown();
-//				break;
-//			case SwipeListener.DIRECTION_LEFT:
-//				jumpLeft();
-//				break;
-//			case SwipeListener.DIRECTION_RIGHT:
-//				swipeRight = true;
-//				jumpRight();
-//				break;
-//			}
-//			
-//			return;
-//		}
 		
 		switch(direction){
 		case SwipeListener.DIRECTION_UP:
 			if(touchingGround()){				
-				jumpUp();
+				jump(JUMP_UP);
 			}
 			break;
 		case SwipeListener.DIRECTION_LEFT:
-			jumpLeft();
+			jump(JUMP_LEFT);
 			break;
 		case SwipeListener.DIRECTION_RIGHT:
 			swipeRight = true;
-			jumpRight();
+			jump(JUMP_RIGHT);
 			break;
 		case SwipeListener.DIRECTION_DOWN:
 			if(touchingGround() == false){				
-				jumpDown();
+				jump(JUMP_DOWN);
 			}
 			break;
 		}
+		
 	}
 
 	@Override
