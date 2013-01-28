@@ -30,8 +30,8 @@ public class SwipeScene extends Scene {
 			}
 			
 			@Override
-			protected boolean onSwipeRight() {
-				SwipeScene.this.listener.onSwipe(SwipeListener.DIRECTION_RIGHT);
+			protected boolean onSwipeDown() {
+				SwipeScene.this.listener.onSwipe(SwipeListener.DIRECTION_DOWN);
 				return false;
 			}
 			
@@ -42,8 +42,8 @@ public class SwipeScene extends Scene {
 			}
 			
 			@Override
-			protected boolean onSwipeDown() {
-				SwipeScene.this.listener.onSwipe(SwipeListener.DIRECTION_DOWN);
+			protected boolean onSwipeRight() {
+				SwipeScene.this.listener.onSwipe(SwipeListener.DIRECTION_RIGHT);
 				return false;
 			}
 			

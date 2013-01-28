@@ -158,9 +158,9 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		placeSegmentAtPosition(segment, 0, false);
 		
 		
-//		// =====================================================================
-//		// PLAYER
-//		// =====================================================================
+		// =====================================================================
+		// PLAYER
+		// =====================================================================
 		
 		//Create a sprite for our player
 		mPlayerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
@@ -235,19 +235,28 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 	}
 	
-	private void jump() {
+	private void jumpUp() {
 		mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -13);
+	}
+	
+	private void jumpDown() {
+		mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, 15);
 	}
 
 	//TODO Merge jump(), jumpLeft() and jumpRight() into jump(int direction)
 	private void jumpLeft() {
-		mPlayerBody.setLinearVelocity(-3.5f, -4f);
+		mPlayerBody.setLinearVelocity(-3.5f, mPlayerBody.getLinearVelocity().y);
 	}
 
 	//TODO Merge jump(), jumpLeft() and jumpRight() into jump(int direction)
 	private void jumpRight() {
-		mPlayerBody.setLinearVelocity(3.5f, -4f);
+		
+		mPlayerBody.setLinearVelocity(3.5f, mPlayerBody.getLinearVelocity().y);
 	}
+	
+	// =====================================================================
+	// THINGS TO HAPPEN ON EACH UPDATE
+	// =====================================================================
 	
 	@Override
 	public void onUpdate(float pSecondsElapsed) {
@@ -267,12 +276,25 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	@Override
 	public void onSwipe(int direction) {
 		if(mGroundContact <= 0){
+			
+			switch(direction){			
+			case SwipeListener.DIRECTION_DOWN:
+				jumpDown();
+				break;
+			case SwipeListener.DIRECTION_LEFT:
+				jumpLeft();
+				break;
+			case SwipeListener.DIRECTION_RIGHT:
+				jumpRight();
+				break;
+			}
+			
 			return;
 		}
 		
 		switch(direction){
 		case SwipeListener.DIRECTION_UP:
-			jump();
+			jumpUp();
 			break;
 		case SwipeListener.DIRECTION_LEFT:
 			jumpLeft();
