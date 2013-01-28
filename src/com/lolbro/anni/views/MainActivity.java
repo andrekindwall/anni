@@ -39,6 +39,10 @@ import com.lolbro.anni.physicseditor.PhysicsEditorShapeLibrary;
 
 public class MainActivity extends SimpleBaseGameActivity implements SwipeListener, IUpdateHandler, ContactListener {
 	
+	// =====================================================================
+	// INSTANCE VARIABLES
+	// =====================================================================
+	
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
 	
@@ -63,6 +67,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	private float mLastSegmentStartWorldPosition;
 	private int mLastSegmentIndex;
+	
+	// =====================================================================
+	// RANDOM SHIT
+	// =====================================================================
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
