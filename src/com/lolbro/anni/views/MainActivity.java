@@ -10,7 +10,6 @@ import org.andengine.entity.scene.background.ParallaxBackground.ParallaxEntity;
 import org.andengine.entity.sprite.AnimatedSprite;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
-import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.extension.physics.box2d.util.constants.PhysicsConstants;
 import org.andengine.opengl.texture.TextureOptions;
@@ -28,7 +27,6 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.lolbro.anni.customs.ChaseCamera;
 import com.lolbro.anni.customs.SwipeScene;
@@ -46,8 +44,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	public static final int CAMERA_WIDTH = 720;
 	public static final int CAMERA_HEIGHT = 480;
-	public static final float GRAVITY_VALUE = 25.00000f;
-
+	public static final float GRAVITY_VALUE = 60.00000f;
+	
 	public static final int JUMP_UP = 1;
 	public static final int JUMP_DOWN = 2;
 	public static final int JUMP_LEFT = 3;
@@ -68,21 +66,6 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private Body mPlayerBody;
 	private Body mCameraBody;
 	
-	// Collision categories
-	public static final short CATEGORYBIT_WALL = 1;
-	public static final short CATEGORYBIT_PLAYER = 2;
-	public static final short CATEGORYBIT_CAMERA = 4;
-	
-	// Collision declarations
-	public static final short MASKBITS_WALL = CATEGORYBIT_WALL + CATEGORYBIT_PLAYER;
-	public static final short MASKBITS_PLAYER = CATEGORYBIT_WALL;
-	public static final short MASKBITS_CAMERA = 0;
-	
-	public static final FixtureDef WALL_FIXTURE_DEF = PhysicsFactory.createFixtureDef(0f, 0f, 0f, false, CATEGORYBIT_WALL, MASKBITS_WALL, (short)0);
-	public static final FixtureDef PLAYER_FIXTURE_DEF = PhysicsFactory.createFixtureDef(0f, 0f, 0f, false, CATEGORYBIT_PLAYER, MASKBITS_PLAYER, (short)0);
-	public static final FixtureDef CAMERA_FIXTURE_DEF = PhysicsFactory.createFixtureDef(0f, 0f, 0f, false, CATEGORYBIT_CAMERA, MASKBITS_CAMERA, (short)0);
-	// Collisions ends
-	
 	private PhysicsEditorShapeLibrary mPhysicsEditorShapeLibrary;
 	private SwipeScene mScene;
 	private ChaseCamera mCamera;
@@ -90,7 +73,8 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	
 	private int mGroundContact = 0;
 	private boolean swipeRight = false;
-	private short rightRollCounter = 0;
+	private boolean swipeLeft = false;
+	private short rollCounter = 0;
 	
 	private float mLastSegmentStartWorldPosition;
 	private int mLastSegmentIndex;
@@ -124,15 +108,15 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 		//Create atlas for level segments
 		BitmapTextureAtlas segmentsTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 1024, 512);
-		ITextureRegion segmentFloor1 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_1.png", 0, 0); //1024x128
-		ITextureRegion segmentFloor2 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_2.png", 0, 128); //1024x128
-		ITextureRegion segmentFloor3 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_3.png", 0, 256); //1024x128
+		ITextureRegion segmentFloorShort1 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_1.png", 0, 0); //1024x128
+		ITextureRegion segmentFloorShort2 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_2.png", 512, 0); //1024x128
+		ITextureRegion segmentFloorShort3 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_3.png", 0, 256); //1024x128
 		segmentsTextureAtlas.load();
 		
 		mSegmentManager = new LevelSegmentManager(this);
-		mSegmentManager.addSegment("segment_floor_1", segmentFloor1);
-		mSegmentManager.addSegment("segment_floor_2", segmentFloor2);
-		mSegmentManager.addSegment("segment_floor_3", segmentFloor3);
+		mSegmentManager.addSegment("segment_floor_short_1", segmentFloorShort1);
+		mSegmentManager.addSegment("segment_floor_short_2", segmentFloorShort2);
+		mSegmentManager.addSegment("segment_floor_short_3", segmentFloorShort3);
 		
 		//Create shape collision importer
 		mPhysicsEditorShapeLibrary = new PhysicsEditorShapeLibrary();
@@ -204,7 +188,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		// =====================================================================
 		
 		//Create a sprite for our player
-		mPlayerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2, mPlayerTextureRegion, vertexBufferObjectManager);
+		mPlayerSprite = new AnimatedSprite(0, -CAMERA_HEIGHT/2 - 50, mPlayerTextureRegion, vertexBufferObjectManager);
 		mPlayerSprite.animate(65);
 		mPlayerSprite.setBlendFunction(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		
@@ -253,15 +237,26 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		}
 		
 		if (swipeRight == true) {
-			if (rightRollCounter < 20) {
-				rightRollCounter ++;
-				mPlayerBody.setLinearVelocity(15, mPlayerBody.getLinearVelocity().y);
+			if (rollCounter < 13) {
+				rollCounter ++;
+				mPlayerBody.setLinearVelocity(25, mPlayerBody.getLinearVelocity().y);
 			} else if (mPlayerBody.getPosition().x > mCameraBody.getPosition().x) {
 				mPlayerBody.setLinearVelocity(-15, mPlayerBody.getLinearVelocity().y);
 			} else {
-				rightRollCounter = 0;
+				rollCounter = 0;
 				swipeRight = false;
 			}
+		} else if (swipeLeft == true) {
+			if (rollCounter < 13) {
+				rollCounter ++;
+				mPlayerBody.setLinearVelocity(-15, mPlayerBody.getLinearVelocity().y);
+			} else if (mPlayerBody.getPosition().x < mCameraBody.getPosition().x) {
+				mPlayerBody.setLinearVelocity(25, mPlayerBody.getLinearVelocity().y);
+			} else {
+				rollCounter = 0;
+				swipeLeft = false;
+			}
+			
 		} else if (mPlayerBody.getPosition().x != mCameraBody.getPosition().x) {
 			mPlayerBody.setTransform(mCameraBody.getPosition().x, mPlayerBody.getPosition().y, 0);
 		}
@@ -279,10 +274,10 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 	private void jump(int direction){
 		switch(direction){
 		case JUMP_UP:
-			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -13);
+			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, -25);
 			break;
 		case JUMP_DOWN:
-			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, 15);
+			mPlayerBody.setLinearVelocity(mPlayerBody.getLinearVelocity().x, 20);
 			break;
 		case JUMP_LEFT:
 			mPlayerBody.setLinearVelocity(-3.5f, mPlayerBody.getLinearVelocity().y);
@@ -356,6 +351,7 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 			}
 			break;
 		case SwipeListener.DIRECTION_LEFT:
+			swipeLeft = true;
 			jump(JUMP_LEFT);
 			break;
 		case SwipeListener.DIRECTION_RIGHT:

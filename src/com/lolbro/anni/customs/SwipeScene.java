@@ -7,7 +7,7 @@ import android.content.Context;
 
 public class SwipeScene extends Scene {
 
-	public static final int MIN_SWIPE_DISTANCE = 80;
+	public static final int MIN_SWIPE_DISTANCE = 50;
 	
 	private SwipeListener listener;
 	
