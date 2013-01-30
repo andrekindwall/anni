@@ -108,15 +108,17 @@ public class MainActivity extends SimpleBaseGameActivity implements SwipeListene
 		
 		//Create atlas for level segments
 		BitmapTextureAtlas segmentsTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 1024, 512);
-		ITextureRegion segmentFloorShort1 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_1.png", 0, 0); //1024x128
-		ITextureRegion segmentFloorShort2 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_2.png", 512, 0); //1024x128
-		ITextureRegion segmentFloorShort3 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_3.png", 0, 256); //1024x128
+		ITextureRegion segmentFloorShort1 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_1.png", 0, 0); //512x256
+		ITextureRegion segmentFloorShort2 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_2.png", 512, 0); //512x256
+		ITextureRegion segmentFloorShort3 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_3.png", 0, 256); //512x256
+		ITextureRegion segmentFloorShort4 = BitmapTextureAtlasTextureRegionFactory.createFromAsset(segmentsTextureAtlas, this, "segment_floor_short_4.png", 512, 256); //512x256
 		segmentsTextureAtlas.load();
 		
 		mSegmentManager = new LevelSegmentManager(this);
 		mSegmentManager.addSegment("segment_floor_short_1", segmentFloorShort1);
 		mSegmentManager.addSegment("segment_floor_short_2", segmentFloorShort2);
 		mSegmentManager.addSegment("segment_floor_short_3", segmentFloorShort3);
+		mSegmentManager.addSegment("segment_floor_short_4", segmentFloorShort4);
 		
 		//Create shape collision importer
 		mPhysicsEditorShapeLibrary = new PhysicsEditorShapeLibrary();

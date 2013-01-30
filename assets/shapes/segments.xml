@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- created with http://www.physicseditor.de -->
 <bodydef version="1.0">
-    <bodies numBodies="3">
+    <bodies numBodies="4">
 
         <body name="segment_floor_short_1" dynamic="false" numFixtures="1">
 
@@ -243,6 +243,90 @@
                     <vertex x="-256.0000" y="128.0000" />
 
                     <vertex x="-165.0000" y="96.0000" />
+
+                </polygon>
+
+
+            </fixture>
+
+        </body>
+
+        <body name="segment_floor_short_4" dynamic="false" numFixtures="2">
+
+            <fixture
+                density="2"
+                friction="0"
+                restitution="0"
+                filter_categoryBits="1"
+                filter_groupIndex="0"
+                filter_maskBits="65535"
+                isSensor="false"
+                type="POLYGON"
+                numPolygons="3"
+                >
+
+
+                <polygon numVertexes="4">
+
+                    <vertex x="-195.0000" y="60.0000" />
+
+                    <vertex x="-256.0000" y="128.0000" />
+
+                    <vertex x="-256.0000" y="0.0000" />
+
+                    <vertex x="-195.0000" y="0.0000" />
+
+                </polygon>
+
+                <polygon numVertexes="4">
+
+                    <vertex x="256.0000" y="0.0000" />
+
+                    <vertex x="256.0000" y="128.0000" />
+
+                    <vertex x="205.0000" y="60.0000" />
+
+                    <vertex x="205.0000" y="0.0000" />
+
+                </polygon>
+
+                <polygon numVertexes="4">
+
+                    <vertex x="-195.0000" y="60.0000" />
+
+                    <vertex x="205.0000" y="60.0000" />
+
+                    <vertex x="256.0000" y="128.0000" />
+
+                    <vertex x="-256.0000" y="128.0000" />
+
+                </polygon>
+
+
+            </fixture>
+
+            <fixture
+                density="2"
+                friction="0"
+                restitution="0"
+                filter_categoryBits="1"
+                filter_groupIndex="0"
+                filter_maskBits="65535"
+                isSensor="false"
+                type="POLYGON"
+                numPolygons="1"
+                >
+
+
+                <polygon numVertexes="4">
+
+                    <vertex x="-136.0000" y="-39.0000" />
+
+                    <vertex x="134.0000" y="-39.0000" />
+
+                    <vertex x="134.0000" y="-19.0000" />
+
+                    <vertex x="-136.0000" y="-19.0000" />
 
                 </polygon>
 
